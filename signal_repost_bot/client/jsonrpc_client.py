@@ -168,10 +168,11 @@ class JsonRpcSignalClient(BaseSignalClient):
         req_id = data.get("id")
         if req_id in self._pending_requests:
             fut = self._pending_requests.pop(req_id)
-            if "error" in data:
-                fut.set_exception(RuntimeError(data["error"]))
-            else:
-                fut.set_result(data.get("result"))
+            if not fut.done():
+                if "error" in data:
+                    fut.set_exception(RuntimeError(data["error"]))
+                else:
+                    fut.set_result(data.get("result"))
             return
 
         # 2. Handle JSON-RPC incoming notification or receive method
