@@ -83,16 +83,16 @@ cp config.example.yaml config.yaml
 Edit `config.yaml`:
 
 ```yaml
-signal_account: "+16094121314"
+signal_account: "+12345678901"
 client_mode: "jsonrpc_socket"
 endpoint: "127.0.0.1:7583"
 
 # Define your routes (Curb Alerts, Housing, etc.)
 routes:
   - name: "Curb Alerts Feed"
-    spectator_group_id: "ugFqM3PNsm05ljZalNzInz36s4FOTJIxqts1SLtMkuE="
+    spectator_group_id: "your-curb-spectator-group-id"
     source_group_ids:
-      - "UrFJfd5CoAF5I/SRDj7X0usO0fd10b3khu8mNisDwW8="
+      - "your-curb-source-group-id"
     filters:
       require_photo: true
       require_text: true
@@ -102,17 +102,16 @@ routes:
       include_dm_link: true
 
   - name: "Housing & Rentals Feed"
-    spectator_group_id: "GOGt/D8P2Uqlg2KFxlQSbruo5uoa14bu6NYrbH68R+o="
+    spectator_group_id: "your-housing-spectator-group-id"
     source_group_ids:
-      - "dgabYJYlDvQonZ+kHYGQS8eIAbRDEel0teU3Bz0Ft9U="
+      - "your-housing-source-group-id"
     filters:
       require_photo: true
       require_text: true
     formatting:
       header_template: "🏠 [{group_name}] {sender_name}:\n"
       include_sender_number: true
-      include_dm_link: true # Tap-to-DM links for rent seekers!
-
+      include_dm_link: true # Tap-to-DM link for rent seekers!
 storage:
   db_path: "data/bot_state.db"
 ```
