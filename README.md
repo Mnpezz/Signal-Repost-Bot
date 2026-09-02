@@ -24,7 +24,8 @@ A lightweight, asynchronous Python bot designed to solve the Signal group member
                      └──────────┬──────────┘
                                 │
                  • Multi-Route Syndication (Curb Alerts, Housing, etc.)
-                 • DM Contact Info (Include phone numbers for rent-seekers)
+                 • Smart Tap-to-DM Links (https://signal.me/#u/username or #p/+1...)
+                 • Clean Header Sanitization (replaces raw base64 hashes with route names)
                  • Deduplication (SQLite persistent store)
                  • Filter: Photo + Text requirement, replies, whitelists
                                 │
@@ -34,7 +35,9 @@ A lightweight, asynchronous Python bot designed to solve the Signal group member
 ```
 
 - **Multi-Route Syndication**: A single bot account and process can handle multiple independent feeds (e.g. Curb Alerts -> Curb Spectator Group, Housing & Rentals -> Housing Spectator Group).
-- **Direct Messaging (DM) Support**: Optionally include the original poster's phone number/handle in the repost header (`include_sender_number: true`) so spectator readers can tap to DM the original sender directly.
+- **Smart Tap-to-DM Direct Messaging**: Automatically generates clickable Signal deep links (`https://signal.me/#u/username` or `https://signal.me/#p/+15551234567`) so spectators in the group can tap to DM original senders directly.
+- **Friendly Group Header Sanitization**: Replaces raw base64 group ID strings (e.g. `UrFJfd5Co...`) with your clean, custom route names (e.g. `[Curb Alerts Feed]`).
+- **Multi-Attachment Resolver**: Automatically resolves and packages multi-photo posts, GIFs, and videos directly from `signal-cli` data directories with a 64MB stream buffer limit.
 - **Two Engine Modes Supported**:
   - `jsonrpc_socket`: Connects directly to `signal-cli daemon` via TCP or Unix domain sockets.
   - `rest_api`: Connects to Dockerized `signal-cli-rest-api` via HTTP & WebSockets.
@@ -60,8 +63,8 @@ A lightweight, asynchronous Python bot designed to solve the Signal group member
 Clone repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/signal-repost-bot.git
-cd signal-repost-bot
+git clone https://github.com/Mnpezz/Signal-Repost-Bot.git
+cd Signal-Repost-Bot
 
 # Create virtual environment and install
 python3 -m venv .venv
@@ -80,30 +83,35 @@ cp config.example.yaml config.yaml
 Edit `config.yaml`:
 
 ```yaml
-signal_account: "+15045555045"
+signal_account: "+16094121314"
 client_mode: "jsonrpc_socket"
 endpoint: "127.0.0.1:7583"
 
 # Define your routes (Curb Alerts, Housing, etc.)
 routes:
   - name: "Curb Alerts Feed"
-    spectator_group_id: "your-curb-spectator-group-id"
+    spectator_group_id: "ugFqM3PNsm05ljZalNzInz36s4FOTJIxqts1SLtMkuE="
     source_group_ids:
-      - "your-curb-source-group-id"
+      - "UrFJfd5CoAF5I/SRDj7X0usO0fd10b3khu8mNisDwW8="
     filters:
       require_photo: true
       require_text: true
+    formatting:
+      header_template: "📸 [{group_name}] {sender_name}:\n"
+      include_sender_number: true
+      include_dm_link: true
 
   - name: "Housing & Rentals Feed"
-    spectator_group_id: "your-housing-spectator-group-id"
+    spectator_group_id: "GOGt/D8P2Uqlg2KFxlQSbruo5uoa14bu6NYrbH68R+o="
     source_group_ids:
-      - "your-housing-source-group-id"
+      - "dgabYJYlDvQonZ+kHYGQS8eIAbRDEel0teU3Bz0Ft9U="
     filters:
       require_photo: true
       require_text: true
     formatting:
       header_template: "🏠 [{group_name}] {sender_name}:\n"
-      include_sender_number: true # Allows rent seekers to DM original sender!
+      include_sender_number: true
+      include_dm_link: true # Tap-to-DM links for rent seekers!
 
 storage:
   db_path: "data/bot_state.db"
@@ -133,7 +141,7 @@ Joined Signal Groups:
  Group ID:   UrFJfd5Co...
 ------------------------------------------------------------
  Group Name: Housing & Rentals
- Group ID:   gX8sF92bL...
+ Group ID:   dgabYJYlD...
 ------------------------------------------------------------
 ```
 
@@ -142,6 +150,16 @@ Joined Signal Groups:
 ```bash
 signal-repost-bot -c config.yaml run
 ```
+
+---
+
+## 💬 Tap-to-DM Link Details
+
+When `include_dm_link: true` is enabled, the bot generates clickable Signal direct message links for spectators:
+
+- **Username Links**: If the sender has a Signal Username (e.g. `@alice.01`), the link is formatted as `https://signal.me/#u/alice.01`.
+- **Phone Links**: If the sender shares their phone number, the link is formatted as `https://signal.me/#p/+15551234567`.
+- **Privacy Protection**: If the sender hides their phone number and has no username, raw invalid UUID links (`sgnl://`) are safely omitted to keep the post header clean.
 
 ---
 
@@ -160,8 +178,8 @@ signal-repost-bot -c config.yaml run
    ```
 2. Clone the bot and copy your `config.yaml`:
    ```bash
-   git clone https://github.com/your-username/signal-repost-bot.git
-   cd signal-repost-bot
+   git clone https://github.com/Mnpezz/Signal-Repost-Bot.git
+   cd Signal-Repost-Bot
    cp config.example.yaml config.yaml
    ```
 3. Start the bot and `signal-cli-rest-api` stack in background mode:
