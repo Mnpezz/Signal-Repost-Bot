@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  signal-api:
+    image: bbernhard/signal-cli-rest-api:latest
+    container_name: signal-api
+    environment:
+      - MODE=normal # "normal" or "native" or "json-rpc"
+    volumes:
+      - signal-cli-data:/home/.local/share/signal-cli
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  signal-repost-bot:
+    build: .
+    container_name: signal-repost-bot
+    depends_on:
+      - signal-api
+    environment:
+      - SIGNAL_ACCOUNT=+12345678901
+      - SPECTATOR_GROUP_ID=your-spectator-group-id-here
+      - SOURCE_GROUP_IDS=*
+      - CLIENT_MODE=rest_api
+      - SIGNAL_ENDPOINT=http://signal-api:8080
+      - LOG_LEVEL=INFO
+    volumes:
+      - bot-data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  signal-cli-data:
+  bot-data:

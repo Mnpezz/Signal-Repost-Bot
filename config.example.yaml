@@ -1,0 +1,51 @@
+# Signal Repost Bot Configuration
+
+# Signal Account (Phone number registered/linked with Signal, e.g. "+12345678901")
+signal_account: "+12345678901"
+
+# Signal-CLI Connection Settings
+# Options: "jsonrpc_socket" (signal-cli TCP/Unix socket), "rest_api" (signal-cli-rest-api HTTP)
+client_mode: "jsonrpc_socket"
+endpoint: "127.0.0.1:7583"
+
+# Multi-Route Configuration
+# You can define multiple routes mapping source groups to their respective spectator groups!
+routes:
+  - name: "Curb Alerts Feed"
+    spectator_group_id: "curb-alert-spectator-group-id"
+    source_group_ids:
+      - "curb-alert-source-group-id"
+    filters:
+      require_photo: true
+      require_text: true
+      allow_videos: true
+      allow_gifs: true
+      ignore_replies: false
+      ignore_bot_messages: true
+    formatting:
+      header_template: "📸 [{group_name}] {sender_name}:\n"
+      include_sender_number: false
+
+  - name: "Housing & Rentals Feed"
+    spectator_group_id: "housing-spectator-group-id"
+    source_group_ids:
+      - "housing-source-group-id"
+    filters:
+      require_photo: true
+      require_text: true
+      allow_videos: true
+      allow_gifs: true
+      ignore_replies: false
+      ignore_bot_messages: true
+    formatting:
+      header_template: "🏠 [{group_name}] {sender_name}:\n"
+      include_sender_number: true
+      include_dm_link: true # Adds a tap-to-DM link (https://signal.me/#p/...) for direct messages!
+
+# Storage & Deduplication Settings
+storage:
+  db_path: "data/bot_state.db"
+  dedup_ttl_days: 30
+
+# Logging
+log_level: "INFO"
